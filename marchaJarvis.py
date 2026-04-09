@@ -1,24 +1,59 @@
 import numpy as np
 
-# Entrada: tres puntos (a, b, c) en el plano (x, y)
-# Salida: un valor que indica la orientación de los puntos
-# Mediante el producto cruz de los vectores ab y ac se puede determinar la orientación de los puntos:
-# - Si el resultado es positivo, entonces c está a la izquierda de ab (sentido antihorario).
-# - Si el resultado es negativo, entonces c está a la derecha de ab (sentido horario).
-# - Si el resultado es cero, entonces a, b y c son colineales
 def orientacion(a, b, c):
+    '''
+    Calcula la orientación de tres puntos a, b, c en el plano (x, y) usando determinante.
+
+    vector AB = (bx - ax, by - ay), 
+    vector AC = (cx - ax, cy - ay), 
+    se calcula el determinante de la matriz formada por los vectores AB y AC:
+
+     | ABx ACx |
+     | ABy ACy |
+
+    Parametros:
+    ------------
+    a, b, c: tuplas (x, y) que representan puntos en el plano
+
+    Retorna:
+    ------------
+    mayor que 0 si los puntos a, b, c están en sentido horario
+
+    menor que 0 si los puntos a, b, c están en sentido antihorario
+
+    igual a 0 si los puntos a, b, c son colineales
+
+    '''
     return (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])
 
-# Entrada: dos puntos (a, b) en el plano (x, y)
-# Salida: la distancia euclidiana entre los puntos a y b
 def distancia(a, b):
+    '''
+    Parametros:
+    ------------
+    a, b: tuplas (x, y) que representan puntos en el plano
+
+    Retorna:
+    ------------
+    La distancia euclidiana entre los puntos a y b
+    '''
     return np.sqrt((b[0] - a[0])**2 + (b[1] - a[1])**2)
 
-# Entrada: una lista de puntos en el plano (x, y)
-# Salida: una lista de puntos que forman la envoltura convexa de los puntos
-# O(n * h), n = número de puntos, h = número de puntos en la envoltura convexa
-# Elige el punto mas a la izquierda, el siguiente punto es el que este mas a la izquierda en relacion al punto actual
 def marcha_jarvis(puntos:list):
+    '''
+    Algoritmo de Marcha de Jarvis (Gift Wrapping) para encontrar la envoltura convexa de un conjunto de puntos en el plano (x, y).
+
+    Complejidad: O(n * h), donde n es el número de puntos y h es el número de puntos en la envoltura convexa.
+
+    Parametros:
+    ------------
+    puntos: una lista de tuplas (x, y) que representan puntos en el plano
+
+    Retorna:
+    ------------
+    Una lista de puntos que forman la envoltura convexa de los puntos
+    
+    Si hay menos de 3 puntos, retorna None
+    '''
     
     if len(puntos) < 3:
         return None

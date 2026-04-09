@@ -1,9 +1,19 @@
 import numpy as np
 
-# Entrada: dos ecuaciones de la forma ax + by = c, representadas como tuplas (a, b, c)
-# Salida: un punto (x, y) que es la intersección de las dos líneas, o None si las líneas son paralelas
-# Se utiliza la regla de Cramer para resolver el sistema de ecuaciones
 def interseccion(ecuacion1, ecuacion2):
+    '''
+    Calcula la interseccion de dos lineas usando la regla de Cramer.
+
+    Parametros:
+    ------------
+    ecuacion1: tupla (a1, b1, c1), representa a1*x + b1*y = c1
+    ecuacion2: tupla (a2, b2, c2), representa a2*x + b2*y = c2
+
+    Retorna:
+    ------------
+    (x, y): punto de interseccion de las dos lineas, o None si las lineas son paralelas
+    '''
+
     a1, b1, c1 = ecuacion1
     a2, b2, c2 = ecuacion2
 
@@ -19,9 +29,19 @@ def interseccion(ecuacion1, ecuacion2):
 
     return (x, y)
 
-# Entrada: Matriz de ecuaciones, donde cada fila es una ecuación de la forma ax + by = c representada como (a, b, c)
-# Salida: una lista de puntos (x, y) que son las intersecciones de todas las combinaciones de ecuaciones
 def calcular_todas_intersecciones(ecuaciones: np.ndarray):
+    '''
+    Recorre todas las combinaciones de ecuaciones y calcula sus intersecciones.
+
+    Parametros:
+    ------------
+    ecuaciones: np.ndarray de forma (n, 3), donde cada fila es una ecuacion de la forma ax + by = c 
+                representada como (a, b, c)
+
+    Retorna:
+    ------------
+    intersecciones: una lista de puntos (x, y) que son las intersecciones de todas las combinaciones de ecuaciones
+    '''
     intersecciones = []
     for i in range(len(ecuaciones)):
         for j in range(i + 1, len(ecuaciones)):
