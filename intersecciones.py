@@ -14,8 +14,8 @@ def interseccion(ecuacion1, ecuacion2):
     (x, y): punto de interseccion de las dos lineas, o None si las lineas son paralelas
     '''
 
-    a1, b1, c1 = ecuacion1
-    a2, b2, c2 = ecuacion2
+    a1, b1, c1 = float(ecuacion1[0]), float(ecuacion1[1]), float(ecuacion1[2])
+    a2, b2, c2 = float(ecuacion2[0]), float(ecuacion2[1]), float(ecuacion2[2])
 
     D = a1 * b2 - a2 * b1
     if D == 0:
@@ -28,6 +28,50 @@ def interseccion(ecuacion1, ecuacion2):
     y = Dy / D
 
     return (x, y)
+
+def evaluar_restriccion(a, b, c, inequality, x, y):
+    '''
+    Evalua si un punto (x, y) satisface una restriccion.
+
+    Parametros:
+    ------------
+    a, b, c: coeficientes de la restriccion ax + by = c (desigualdad)
+    inequality: '<=' o '>='
+    x, y: coordenadas del punto
+
+    Retorna:
+    ------------
+    True si el punto satisface la restriccion, False en caso contrario
+    '''
+    a, b, c = float(a), float(b), float(c)
+    x, y = float(x), float(y)
+    valor = a * x + b * y
+    if inequality == '<=':
+        return valor <= c + 1e-9
+    else:
+        return valor >= c - 1e-9
+
+def es_punto_factible(punto, ecuaciones):
+    '''
+    Verifica si un punto satisface todas las restricciones.
+
+    Parametros:
+    ------------
+    punto: tupla (x, y)
+    ecuaciones: np.ndarray de forma (n, 4), donde cada fila es (a, b, c, inequality)
+                inequality es '<=' o '>='
+
+    Retorna:
+    ------------
+    True si el punto es factible, False en caso contrario
+    '''
+    x, y = float(punto[0]), float(punto[1])
+    
+    for eq in ecuaciones:
+        a, b, c, inequality = float(eq[0]), float(eq[1]), float(eq[2]), eq[3]
+        if not evaluar_restriccion(a, b, c, inequality, x, y):
+            return False
+    return True
 
 def calcular_todas_intersecciones(ecuaciones: np.ndarray):
     '''
@@ -48,4 +92,39 @@ def calcular_todas_intersecciones(ecuaciones: np.ndarray):
             inter = interseccion(ecuaciones[i], ecuaciones[j])
             if inter is not None:
                 intersecciones.append(inter)
+    return intersecciones
+
+def calcular_intersecciones_factibles(ecuaciones: np.ndarray):
+    '''
+    Calcula las intersecciones que son parte de la region factible.
+
+    Parametros:
+    ------------
+    ecuaciones: np.ndarray de forma (n, 4), donde cada fila es (a, b, c, inequality)
+                inequality es '<=' o '>='
+
+    Retorna:
+    ------------
+    intersecciones_factibles: lista de puntos (x, y) que son validos para todas las restricciones
+    '''
+    restricciones = []
+    for eq in ecuaciones:
+        a, b, c, inequality = eq
+        restricciones.append((a, b, c, inequality))
+    
+    restricciones.extend([
+        (1, 0, 0, '>='),
+        (0, 1, 0, '>=')
+    ])
+    
+    restricciones = np.array(restricciones, dtype=object)
+
+    
+    intersecciones = []
+    for i in range(len(restricciones)):
+        for j in range(i + 1, len(restricciones)):
+            inter = interseccion(restricciones[i], restricciones[j])
+            if inter is not None and es_punto_factible(inter, restricciones):
+                intersecciones.append(inter)
+    
     return intersecciones

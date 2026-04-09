@@ -6,7 +6,7 @@ matplotlib.use('TkAgg')
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
-from intersecciones import calcular_todas_intersecciones
+from intersecciones import calcular_todas_intersecciones, calcular_intersecciones_factibles
 from marchaJarvis import marcha_jarvis
 from graficacion import plot_lines, plot_intersections, plot_hull
 import config
@@ -15,7 +15,7 @@ import config
 class EquationGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("Calculadora de Intersecciones")
+        self.root.title("Calculadora de Región Factible")
         self.root.geometry("1200x700")
 
         self.ecuaciones = []
@@ -42,7 +42,7 @@ class EquationGUI:
         self._create_canvas(canvas_frame)
 
     def _create_control_panel(self, parent):
-        header = ttk.Label(parent, text="Ecuaciones: ax + by = c", font=('Arial', 12, 'bold'))
+        header = ttk.Label(parent, text="Restricciones: ax + by ≤ c  o  ax + by ≥ c", font=('Arial', 12, 'bold'))
         header.pack(pady=10)
 
         list_frame = ttk.Frame(parent)
@@ -80,9 +80,9 @@ class EquationGUI:
 
     def _add_default_equations(self):
         default_equations = [
-            [1, 0, 0],
-            [0, 1, 0],
-            [1, 1, 2],
+            [1, 0, 0, '>='],
+            [0, 1, 0, '>='],
+            [1, 1, 2, '<='],
         ]
         for eq in default_equations:
             self._add_equation_row(eq)
@@ -91,7 +91,7 @@ class EquationGUI:
         row_idx = len(self.equation_rows)
 
         if values is None:
-            values = [1, 1, 2]
+            values = [1, 1, 2, '<=']
 
         row_frame = ttk.Frame(self.equations_container)
         row_frame.pack(fill=tk.X, pady=2, padx=5)
@@ -100,11 +100,20 @@ class EquationGUI:
         label.pack(side=tk.LEFT, padx=2)
 
         entries = {}
-        for key, val in zip(['a', 'b', 'c'], values):
+        for key, val in zip(['a', 'b', 'c'], values[:3]):
             ttk.Label(row_frame, text=f"{key}:").pack(side=tk.LEFT)
             entries[key] = tk.StringVar(value=str(val))
             entry = ttk.Entry(row_frame, textvariable=entries[key], width=6)
             entry.pack(side=tk.LEFT, padx=2)
+
+        ttk.Label(row_frame, text="tipo:").pack(side=tk.LEFT)
+        inequality_var = tk.StringVar(value=values[3])
+        inequality_combo = ttk.Combobox(
+            row_frame, textvariable=inequality_var, 
+            values=['<=', '>='], width=3, state='readonly'
+        )
+        inequality_combo.pack(side=tk.LEFT, padx=2)
+        entries['inequality'] = inequality_var
 
         ttk.Button(
             row_frame, text="X", style='Remove.TButton', width=3,
@@ -139,7 +148,8 @@ class EquationGUI:
                 a = float(row['entries']['a'].get())
                 b = float(row['entries']['b'].get())
                 c = float(row['entries']['c'].get())
-                ecuaciones.append([a, b, c])
+                inequality = row['entries']['inequality'].get()
+                ecuaciones.append([a, b, c, inequality])
             except ValueError:
                 pass
         return np.array(ecuaciones) if ecuaciones else np.array([])
@@ -161,14 +171,16 @@ class EquationGUI:
             self.status_label.config(text="No hay ecuaciones validas")
             return
 
-        intersecciones = calcular_todas_intersecciones(ecuaciones)
-        envoltura = marcha_jarvis(intersecciones)
-        minx, maxx, miny, maxy = self._calculate_limits(intersecciones)
+        intersecciones_factibles = calcular_intersecciones_factibles(ecuaciones)
+        intersecciones_todas = calcular_todas_intersecciones(ecuaciones)
+        envoltura = marcha_jarvis(intersecciones_factibles)
+        
+        minx, maxx, miny, maxy = self._calculate_limits(intersecciones_factibles if intersecciones_factibles else intersecciones_todas)
 
         self.ax.clear()
 
         plot_lines(self.ax, ecuaciones, minx, maxx, miny, maxy)
-        plot_intersections(self.ax, intersecciones)
+        plot_intersections(self.ax, intersecciones_factibles)
         plot_hull(self.ax, envoltura)
 
         self.ax.set_xlim(minx, maxx)
@@ -184,7 +196,7 @@ class EquationGUI:
         self.fig.tight_layout()
         self.canvas.draw()
 
-        self.status_label.config(text=f"Intersecciones: {len(intersecciones)}, Ecuaciones: {len(ecuaciones)}")
+        self.status_label.config(text=f"Intersecciones factibles: {len(intersecciones_factibles)}, Restricciones: {len(ecuaciones)}")
 
 
 def main():
