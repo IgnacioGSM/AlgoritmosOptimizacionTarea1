@@ -32,7 +32,7 @@ class EquationGUI:
         main_paned = ttk.PanedWindow(self.root, orient=tk.HORIZONTAL)
         main_paned.pack(fill=tk.BOTH, expand=True)
 
-        control_frame = ttk.Frame(main_paned, width=350)
+        control_frame = ttk.Frame(main_paned, width=400)
         main_paned.add(control_frame, weight=0)
 
         canvas_frame = ttk.Frame(main_paned)
@@ -96,29 +96,28 @@ class EquationGUI:
         row_frame = ttk.Frame(self.equations_container)
         row_frame.pack(fill=tk.X, pady=2, padx=5)
 
-        label = ttk.Label(row_frame, text=f"Ec. {row_idx + 1}:", width=6)
-        label.pack(side=tk.LEFT, padx=2)
+        label = ttk.Label(row_frame, text=f"{row_idx + 1}:", width=3)
+        label.pack(side=tk.LEFT, padx=1)
 
         entries = {}
         for key, val in zip(['a', 'b', 'c'], values[:3]):
-            ttk.Label(row_frame, text=f"{key}:").pack(side=tk.LEFT)
+            ttk.Label(row_frame, text=f"{key}:", width=2).pack(side=tk.LEFT)
             entries[key] = tk.StringVar(value=str(val))
-            entry = ttk.Entry(row_frame, textvariable=entries[key], width=6)
-            entry.pack(side=tk.LEFT, padx=2)
+            entry = ttk.Entry(row_frame, textvariable=entries[key], width=5)
+            entry.pack(side=tk.LEFT, padx=1)
 
-        ttk.Label(row_frame, text="tipo:").pack(side=tk.LEFT)
         inequality_var = tk.StringVar(value=values[3])
         inequality_combo = ttk.Combobox(
             row_frame, textvariable=inequality_var, 
             values=['<=', '>='], width=3, state='readonly'
         )
-        inequality_combo.pack(side=tk.LEFT, padx=2)
+        inequality_combo.pack(side=tk.LEFT, padx=1)
         entries['inequality'] = inequality_var
 
         ttk.Button(
-            row_frame, text="X", style='Remove.TButton', width=3,
+            row_frame, text="X", style='Remove.TButton', width=2,
             command=lambda: self._remove_equation(row_idx)
-        ).pack(side=tk.LEFT, padx=5)
+        ).pack(side=tk.LEFT, padx=2)
 
         self.equation_rows.append({
             'frame': row_frame,
