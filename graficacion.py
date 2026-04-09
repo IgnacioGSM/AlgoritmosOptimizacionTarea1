@@ -1,43 +1,46 @@
-import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib.pyplot as plt
+import config
 
-def graficar_lineas(ecuaciones, minx, maxx, miny, maxy):
+
+def _get_style():
+    return {
+        'line_color': config.COLORS['line'],
+        'point_color': config.COLORS['intersection_point'],
+        'hull_color': config.COLORS['convex_hull'],
+        'axes_color': config.COLORS['axes'],
+        'grid_color': config.COLORS['grid'],
+        'line_width': config.LINE_WIDTH,
+        'marker_size': config.MARKER_SIZE,
+    }
+
+
+def plot_lines(ax, ecuaciones, minx, maxx, miny, maxy, style=None):
+    if style is None:
+        style = _get_style()
     x = np.linspace(minx, maxx, 100)
     for ecuacion in ecuaciones:
-        a, b, c = ecuacion      # b no deberia ser 0, pero si lo es, se puede manejar como caso especial
-        if b == 0:            # Ecuacion vertical ax = c
-            x = np.full_like(x, c / a)
+        a, b, c = ecuacion
+        if b == 0:
+            x_vert = np.full_like(x, c / a)
             y = np.linspace(miny, maxy, 100)
-            plt.plot(x, y, label=f'{a}x + {b}y = {c}')
+            ax.plot(x_vert, y, color=style['line_color'], linewidth=style['line_width'], label=f'{a}x + {b}y = {c}')
         else:
             y = (c - a * x) / b
-            plt.plot(x, y, label=f'{a}x + {b}y = {c}')
+            ax.plot(x, y, color=style['line_color'], linewidth=style['line_width'], label=f'{a}x + {b}y = {c}')
 
-def graficar_intersecciones(intersecciones):
+
+def plot_intersections(ax, intersecciones, style=None):
+    if style is None:
+        style = _get_style()
     for inter in intersecciones:
-        plt.plot(inter[0], inter[1], 'ro')
+        ax.plot(inter[0], inter[1], 'o', color=style['point_color'], markersize=style['marker_size'])
 
-def graficar_envoltura(envoltura_convexa):
+
+def plot_hull(ax, envoltura_convexa, style=None):
+    if style is None:
+        style = _get_style()
     if envoltura_convexa:
         envoltura_x = [p[0] for p in envoltura_convexa]
         envoltura_y = [p[1] for p in envoltura_convexa]
-        plt.plot(envoltura_x, envoltura_y, 'b-', linewidth=2)
-
-def graficar(ecuaciones, minx, maxx, miny, maxy, intersecciones=None, envoltura_convexa=None):
-    graficar_lineas(ecuaciones, minx, maxx, miny, maxy)
-
-    if intersecciones is not None:
-        graficar_intersecciones(intersecciones)
-
-    if envoltura_convexa is not None:
-        graficar_envoltura(envoltura_convexa)
-
-    plt.xlabel('x')
-    plt.ylabel('y')
-    plt.xlim(minx, maxx)
-    plt.ylim(miny, maxy)
-    plt.axhline(0, color='black', lw=1, ls='--')
-    plt.axvline(0, color='black', lw=1, ls='--')
-    plt.title('Intersecciones de ecuaciones lineales')
-    plt.legend()
-    plt.show()
+        ax.plot(envoltura_x, envoltura_y, '-', color=style['hull_color'], linewidth=style['line_width'])
