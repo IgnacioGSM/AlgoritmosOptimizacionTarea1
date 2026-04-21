@@ -112,10 +112,10 @@ def calcular_intersecciones_factibles(ecuaciones: np.ndarray):
         a, b, c, inequality = eq
         restricciones.append((a, b, c, inequality))
     
-    restricciones.extend([
-        (1, 0, 0, '>='),
-        (0, 1, 0, '>=')
-    ])
+    #restricciones.extend([
+    #    (1, 0, 0, '>='),
+    #    (0, 1, 0, '>=')
+    #])
     
     restricciones = np.array(restricciones, dtype=object)
 
@@ -128,3 +128,35 @@ def calcular_intersecciones_factibles(ecuaciones: np.ndarray):
                 intersecciones.append(inter)
     
     return intersecciones
+
+def encontrar_punto_optimo(intersecciones_factibles, cx, cy, maximizar=True):
+    '''
+    Encuentra el punto optimo de la region factible evaluando la funcion objetivo.
+
+    Parametros:
+    ------------
+    intersecciones_factibles: lista de puntos (x, y) que son las intersecciones factibles
+    cx, cy: coeficientes de la funcion objetivo Z = cx*x + cy*y
+    maximizar: True para maximizar, False para minimizar
+
+    Retorna:
+    ------------
+    punto_optimo: tuple (x, y) con el valor optimo
+    '''
+    mejor_valor = -float('inf') if maximizar else float('inf')
+    punto_optimo = None
+
+    for punto in intersecciones_factibles:
+        x, y = float(punto[0]), float(punto[1])
+        valor = cx * x + cy * y
+
+        if maximizar:
+            if valor > mejor_valor:
+                mejor_valor = valor
+                punto_optimo = punto
+        else:
+            if valor < mejor_valor:
+                mejor_valor = valor
+                punto_optimo = punto
+
+    return punto_optimo

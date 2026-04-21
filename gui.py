@@ -6,9 +6,9 @@ matplotlib.use('TkAgg')
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
-from intersecciones import calcular_todas_intersecciones, calcular_intersecciones_factibles
+from intersecciones import calcular_todas_intersecciones, calcular_intersecciones_factibles, encontrar_punto_optimo
 from marchaJarvis import marcha_jarvis
-from graficacion import plot_lines, plot_intersections, plot_hull
+from graficacion import plot_lines, plot_intersections, plot_hull, plot_optimal_point
 import config
 
 
@@ -63,11 +63,33 @@ class EquationGUI:
         canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
+
         button_frame = ttk.Frame(parent)
         button_frame.pack(pady=10, padx=10, fill=tk.X)
 
         ttk.Button(button_frame, text="Agregar Ecuacion", command=self._add_equation).pack(side=tk.LEFT, padx=5)
         ttk.Button(button_frame, text="Actualizar Grafico", command=self._update_plot).pack(side=tk.LEFT, padx=5)
+
+        obj_frame = ttk.LabelFrame(parent, text="Funcion Objetivo: Z = cx*x + cy*y", padding=10)
+        obj_frame.pack(pady=10, padx=10, fill=tk.X)
+
+        obj_inner = ttk.Frame(obj_frame)
+        obj_inner.pack()
+
+        ttk.Label(obj_inner, text="cx:").pack(side=tk.LEFT, padx=2)
+        self.cx_var = tk.StringVar(value="1")
+        ttk.Entry(obj_inner, textvariable=self.cx_var, width=5).pack(side=tk.LEFT, padx=2)
+
+        ttk.Label(obj_inner, text="cy:").pack(side=tk.LEFT, padx=2)
+        self.cy_var = tk.StringVar(value="1")
+        ttk.Entry(obj_inner, textvariable=self.cy_var, width=5).pack(side=tk.LEFT, padx=2)
+
+        self.opt_type_var = tk.StringVar(value="max")
+        opt_combo = ttk.Combobox(
+            obj_inner, textvariable=self.opt_type_var,
+            values=['max', 'min'], width=4, state='readonly'
+        )
+        opt_combo.pack(side=tk.LEFT, padx=5)
 
         self.status_label = ttk.Label(parent, text="", font=('Arial', 9))
         self.status_label.pack(pady=5)
@@ -79,11 +101,7 @@ class EquationGUI:
         self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
     def _add_default_equations(self):
-        default_equations = [
-            [1, 0, 0, '>='],
-            [0, 1, 0, '>='],
-            [1, 1, 2, '<='],
-        ]
+        default_equations = config.DEFAULT_EQUATIONS
         for eq in default_equations:
             self._add_equation_row(eq)
 
@@ -170,9 +188,23 @@ class EquationGUI:
             self.status_label.config(text="No hay ecuaciones validas")
             return
 
+        try:
+            cx = float(self.cx_var.get())
+            cy = float(self.cy_var.get())
+        except ValueError:
+            self.status_label.config(text="Coeficientes de funcion objetivo invalidos")
+            return
+
+        maximizar = self.opt_type_var.get() == 'max'
+
         intersecciones_factibles = calcular_intersecciones_factibles(ecuaciones)
         intersecciones_todas = calcular_todas_intersecciones(ecuaciones)
         envoltura = marcha_jarvis(intersecciones_factibles)
+        
+        if intersecciones_factibles:
+            punto_optimo = encontrar_punto_optimo(intersecciones_factibles, cx, cy, maximizar)
+        else:
+            punto_optimo = None
         
         minx, maxx, miny, maxy = self._calculate_limits(intersecciones_factibles if intersecciones_factibles else intersecciones_todas)
 
@@ -181,6 +213,8 @@ class EquationGUI:
         plot_lines(self.ax, ecuaciones, minx, maxx, miny, maxy)
         plot_intersections(self.ax, intersecciones_factibles)
         plot_hull(self.ax, envoltura)
+        if punto_optimo:
+            plot_optimal_point(self.ax, punto_optimo, cx, cy)
 
         self.ax.set_xlim(minx, maxx)
         self.ax.set_ylim(miny, maxy)
@@ -195,7 +229,8 @@ class EquationGUI:
         self.fig.tight_layout()
         self.canvas.draw()
 
-        self.status_label.config(text=f"Intersecciones factibles: {len(intersecciones_factibles)}, Restricciones: {len(ecuaciones)}")
+        opt_status = f", Optimo: ({punto_optimo[0]:.2f}, {punto_optimo[1]:.2f})" if punto_optimo else ", Sin punto optimo"
+        self.status_label.config(text=f"Intersecciones factibles: {len(intersecciones_factibles)}, Restricciones: {len(ecuaciones)}{opt_status}")
 
 
 def main():
