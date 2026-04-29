@@ -35,11 +35,12 @@ def plot_lines(ax, ecuaciones, minx, maxx, miny, maxy, style=None):
             ax.plot(x, y, color=color, linewidth=style['line_width'], label=f'{a}x + {b}y {symbol} {c}')
 
 
-def plot_intersections(ax, intersecciones, style=None):
+def plot_intersections(ax, intersecciones, cx, cy, style=None):
     if style is None:
         style = _get_style()
     for inter in intersecciones:
         ax.plot(inter[0], inter[1], 'o', color=style['point_color'], markersize=style['marker_size'])
+        ax.text(inter[0], inter[1], f'({inter[0]:.2f}, {inter[1]:.2f})\nZ={inter[0] * cx + inter[1] * cy:.2f}', fontsize=8, ha='right')
 
 
 def plot_hull(ax, envoltura_convexa, style=None):
@@ -50,6 +51,13 @@ def plot_hull(ax, envoltura_convexa, style=None):
         envoltura_y = [p[1] for p in envoltura_convexa]
         ax.fill(envoltura_x, envoltura_y, color=style['hull_color'], alpha=config.HULL_ALPHA)
         ax.plot(envoltura_x, envoltura_y, '-', color=style['hull_color'], linewidth=style['line_width'])
+
+def plot_isocosto(ax, cx, cy, z, minx, maxx, miny, maxy, style=None):
+    if style is None:
+        style = _get_style()
+    x = np.linspace(minx, maxx, 100)
+    y = (z - cx * x) / cy
+    ax.plot(x, y, color='magenta', linestyle='--', label=f'Isocosto Z={z:.2f}')
 
 
 def plot_optimal_point(ax, punto, cx, cy, style=None):

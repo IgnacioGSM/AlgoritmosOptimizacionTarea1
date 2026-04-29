@@ -8,7 +8,7 @@ from matplotlib.figure import Figure
 
 from intersecciones import calcular_todas_intersecciones, calcular_intersecciones_factibles, encontrar_punto_optimo
 from marchaJarvis import marcha_jarvis
-from graficacion import plot_lines, plot_intersections, plot_hull, plot_optimal_point
+from graficacion import plot_lines, plot_intersections, plot_hull, plot_optimal_point, plot_isocosto
 import config
 
 
@@ -198,7 +198,8 @@ class EquationGUI:
         maximizar = self.opt_type_var.get() == 'max'
 
         intersecciones_factibles = calcular_intersecciones_factibles(ecuaciones)
-        intersecciones_todas = calcular_todas_intersecciones(ecuaciones)
+        if not intersecciones_factibles:
+            intersecciones_todas = calcular_todas_intersecciones(ecuaciones)
         envoltura = marcha_jarvis(intersecciones_factibles)
         
         if intersecciones_factibles:
@@ -211,8 +212,9 @@ class EquationGUI:
         self.ax.clear()
 
         plot_lines(self.ax, ecuaciones, minx, maxx, miny, maxy)
-        plot_intersections(self.ax, intersecciones_factibles)
+        plot_intersections(self.ax, intersecciones_factibles, cx, cy)
         plot_hull(self.ax, envoltura)
+        plot_isocosto(self.ax, cx, cy, punto_optimo[0] * cx + punto_optimo[1] * cy if punto_optimo else 0, minx, maxx, miny, maxy)
         if punto_optimo:
             plot_optimal_point(self.ax, punto_optimo, cx, cy)
 
